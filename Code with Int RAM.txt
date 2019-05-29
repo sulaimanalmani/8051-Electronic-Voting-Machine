@@ -1,0 +1,219 @@
+#include<reg52.h>
+#include<lcd.h>
+#include<absacc.h>
+#define LCD=P1
+char myextarray[60];
+//LCD Module Connections
+sbit RS = P1^4;
+sbit EN = P1^5;
+sbit D4 = P1^0;
+sbit D5 = P1^1;
+sbit D6 = P1^2;
+sbit D7 = P1^3;
+//End LCD Module Connections
+
+//Keypad Connections
+sbit R1 = P3^0;
+sbit R2 = P3^1;
+sbit R3 = P3^2;
+sbit R4 = P3^3;
+sbit C1 = P3^4;
+sbit C2 = P3^5;
+sbit C3 = P1^6;
+sbit C4 = P1^7;
+//End Keypad Connections
+char myintarray[5];
+int count=0;
+void Delay(int a);
+void writeID(void);
+char Read_Keypad();
+void readID(void);
+int search(void);
+void writeID(void);
+char *dec(unsigned x);
+void tostring(char str[], int num);
+
+void main(void)
+{
+	char vt;
+	int can1=0,can2=0,can3=0,can4=0;
+	char scan1[3],scan2[3],scan3[3],scan4[3];
+	
+		Lcd4_Init();
+
+    Lcd4_Set_Cursor(1,1);
+    Lcd4_Write_String("Welcome to");
+   	Lcd4_Set_Cursor(2,1);
+		 Lcd4_Write_String("Voting Machine");
+    Delay(3000);
+		Lcd4_Clear();
+		
+	while(1)
+	{
+	Lcd4_Set_Cursor(1,1);
+	Lcd4_Write_String("Vote: 1.C1 2.C2");
+   	Lcd4_Set_Cursor(2,1);
+		 Lcd4_Write_String("3.C3 4.C4 5.Disp");
+    Delay(3000);
+	while(!(vt = Read_Keypad()));
+  
+  Lcd4_Clear();
+		
+		if(vt!='5'){
+  Lcd4_Set_Cursor(1,1);
+	Lcd4_Write_String("Enter CNIC:");
+  readID();
+  if(search()==0)
+  {
+  	writeID();
+    Lcd4_Clear();
+  Lcd4_Set_Cursor(1,1);
+	Lcd4_Write_String("Vote Counted.");
+		Delay(3000);
+		switch(vt)
+		{
+			case '1':can1++; break;
+			case '2':can2++; break;
+			case '3':can3++; break;
+			case '4':can4++; break;
+		}
+  }
+  else
+  	{
+    	 Lcd4_Clear();
+  Lcd4_Set_Cursor(1,1);
+	Lcd4_Write_String("Already Voted.");
+			Delay(3000);
+    }
+	}
+	else
+		{
+			Lcd4_Clear();
+			Lcd4_Set_Cursor(1,1);
+			tostring(scan1,can1);
+			tostring(scan2,can2);
+			tostring(scan3,can3);
+			tostring(scan4,can4);
+			Lcd4_Write_String("C1:");
+			Lcd4_Write_String(scan1);
+			Lcd4_Write_String("   C2:");
+			Lcd4_Write_String(scan2);
+			Lcd4_Set_Cursor(2,1);
+			Lcd4_Write_String("C3:");
+			Lcd4_Write_String(scan3);
+			Lcd4_Write_String("   C4:");
+			Lcd4_Write_String(scan4);
+			Delay(3000);
+		}
+ }
+}
+void tostring(char str[], int num)
+{
+    int i, rem, len = 0, n;
+ 
+    n = num;
+    while (n != 0)
+    {
+        len++;
+        n /= 10;
+    }
+    for (i = 0; i < len; i++)
+    {
+        rem = num % 10;
+        num = num / 10;
+        str[len - (i + 1)] = rem + '0';
+    }
+    str[len] = '\0';
+}
+
+void readID(void)
+{
+	int x;
+  char c;
+	for (x=0;x<3;x++)
+  {
+   Lcd4_Set_Cursor(2,x+1);
+  	while(!(c = Read_Keypad()));
+    myintarray[x]=c;
+    Lcd4_Write_String("*");
+  }
+}
+void Delay(int a)
+{
+  int j;
+  int i;
+  for(i=0;i<a;i++)
+  {
+    for(j=0;j<100;j++)
+    {
+    }
+  }
+}
+
+void writeID(void)
+{
+	unsigned int x;
+	for(x=0;x<3;x++)
+	myextarray[x+count*3]=myintarray[x];
+	count++;
+}
+char Read_Keypad()
+{
+  C1=1;
+  C2=1;
+  C3=1;
+  C4=1;
+  R1=0;
+  R2=1;
+  R3=1;
+  R4=1;
+  if(C1==0){Delay(100);while(C1==0);return '7';}
+  if(C2==0){Delay(100);while(C2==0);return '8';}
+  if(C3==0){Delay(100);while(C3==0);return '9';}
+  if(C4==0){Delay(100);while(C4==0);return '/';}
+  R1=1;
+  R2=0;
+  R3=1;
+  R4=1;
+  if(C1==0){Delay(100);while(C1==0);return '4';}
+  if(C2==0){Delay(100);while(C2==0);return '5';}
+  if(C3==0){Delay(100);while(C3==0);return '6';}
+  if(C4==0){Delay(100);while(C4==0);return 'X';}
+  R1=1;
+  R2=1;
+  R3=0;
+  R4=1;
+  if(C1==0){Delay(100);while(C1==0);return '1';}
+  if(C2==0){Delay(100);while(C2==0);return '2';}
+  if(C3==0){Delay(100);while(C3==0);return '3';}
+  if(C4==0){Delay(100);while(C4==0);return '-';}
+  R1=1;
+  R2=1;
+  R3=1;
+  R4=0;
+  if(C1==0){Delay(100);while(C1==0);return 'C';}
+  if(C2==0){Delay(100);while(C2==0);return '0';}
+  if(C3==0){Delay(100);while(C3==0);return '=';}
+  if(C4==0){Delay(100);while(C4==0);return '+';}
+  return 0;
+}
+
+int search(void)
+{
+	int temp=0;
+	int coun=0;
+	int x=0;
+	while(coun<count)
+	{
+		while((myextarray[x+temp]==myintarray[temp])&&temp<3)	
+		{	
+			temp++;
+		}
+		if(temp==3)
+		return 1;
+		x=x+3;
+		temp=0;
+    coun++;
+	}
+	return 0;
+}
